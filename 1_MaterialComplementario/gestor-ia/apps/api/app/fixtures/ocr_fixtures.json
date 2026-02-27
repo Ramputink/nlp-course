@@ -1,0 +1,26 @@
+{
+  "ticket_gasolina.pdf": {
+    "vendor": "Gasolinera Norte",
+    "date": "2025-12-20",
+    "total": 78.40,
+    "vat": 13.60,
+    "nif": "B12345678",
+    "base": 64.80
+  },
+  "factura_cowork.png": {
+    "vendor": "Cowork Central",
+    "date": "2025-12-05",
+    "total": 220.00,
+    "vat": 38.20,
+    "nif": "B87654321",
+    "base": 181.80
+  },
+  "recibo_luz.jpg": {
+    "vendor": "Iberdrola",
+    "date": "2025-11-28",
+    "total": 95.30,
+    "vat": 16.52,
+    "nif": "A12345678",
+    "base": 78.78
+  }
+}

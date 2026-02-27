@@ -1,0 +1,62 @@
+[
+  {
+    "id": 1,
+    "jurisdiction": "ES",
+    "agency": "AEAT",
+    "title": "Gastos deducibles en estimacion directa",
+    "url": "https://www.agenciatributaria.es",
+    "summary": "Los gastos vinculados a la actividad y correctamente justificados pueden ser deducibles.",
+    "as_of_date": "2025-12-15",
+    "content_hash": "aeat-001",
+    "confidence": 0.82,
+    "raw_text": "AEAT: En estimacion directa, los gastos necesarios para la obtencion de ingresos pueden ser deducibles siempre que exista correlacion con la actividad y se conserven facturas o justificantes."
+  },
+  {
+    "id": 2,
+    "jurisdiction": "ES",
+    "agency": "BOE",
+    "title": "Modelo 303 - instrucciones",
+    "url": "https://www.boe.es",
+    "summary": "El modelo 303 debe presentarse trimestralmente con el resumen del IVA repercutido y soportado.",
+    "as_of_date": "2025-11-30",
+    "content_hash": "boe-303",
+    "confidence": 0.76,
+    "raw_text": "BOE: El modelo 303 se utiliza para autoliquidacion del IVA. La presentacion es trimestral y recoge el IVA devengado y soportado."
+  },
+  {
+    "id": 3,
+    "jurisdiction": "ES",
+    "agency": "DEHU",
+    "title": "Notificaciones electronicas obligatorias",
+    "url": "https://dehu.redsara.es",
+    "summary": "Las notificaciones en DEHU tienen plazos de respuesta y deben revisarse de forma periodica.",
+    "as_of_date": "2025-10-05",
+    "content_hash": "dehu-001",
+    "confidence": 0.7,
+    "raw_text": "DEHU: Las notificaciones electronicas requieren acceso periodico. El plazo de respuesta comienza desde la puesta a disposicion."
+  },
+  {
+    "id": 4,
+    "jurisdiction": "ES",
+    "agency": "AEAT",
+    "title": "Retenciones IRPF modelo 130",
+    "url": "https://www.agenciatributaria.es",
+    "summary": "El modelo 130 aplica a autonomos en estimacion directa con pagos fraccionados de IRPF.",
+    "as_of_date": "2025-09-12",
+    "content_hash": "aeat-130",
+    "confidence": 0.73,
+    "raw_text": "AEAT: El modelo 130 corresponde a pagos fraccionados del IRPF para autonomos en estimacion directa."
+  },
+  {
+    "id": 5,
+    "jurisdiction": "ES",
+    "agency": "BOE",
+    "title": "Calendario fiscal 2025",
+    "url": "https://www.boe.es",
+    "summary": "El calendario fiscal indica plazos trimestrales para IVA e IRPF.",
+    "as_of_date": "2025-01-15",
+    "content_hash": "boe-cal-2025",
+    "confidence": 0.65,
+    "raw_text": "BOE: El calendario fiscal establece plazos de presentacion para modelos 303 y 130, entre otros."
+  }
+]

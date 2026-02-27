@@ -1,0 +1,12 @@
+[
+  {
+    "title": "Requerimiento documentacion IVA",
+    "summary": "Se solicita documentacion adicional con plazo de 10 dias.",
+    "draft_reply": "Acusamos recibo. Adjuntaremos la documentacion solicitada dentro del plazo indicado."
+  },
+  {
+    "title": "Aviso de comprobacion limitada",
+    "summary": "Se inicia comprobacion limitada y se adjuntan instrucciones.",
+    "draft_reply": "Gracias por la comunicacion. Estamos revisando los requerimientos para responder."
+  }
+]

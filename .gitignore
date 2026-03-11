@@ -1,0 +1,10 @@
+# Ignore Visual Studio Code settings and workspace files
+.vscode/
+.qodo/
+.DS_Store
+distilbert_definitive/
+Project1_previousAttempts/checkpoint-*/
+nlp_env_2026/
+*.pt
+*.bin
+*.ckpt

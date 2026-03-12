@@ -8,3 +8,8 @@ nlp_env_2026/
 *.pt
 *.bin
 *.ckpt
+.ipynb_checkpoints/
+__pycache__/
+*.log
+runs/
+wandb/

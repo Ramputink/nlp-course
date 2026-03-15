@@ -13,3 +13,4 @@ __pycache__/
 *.log
 runs/
 wandb/
+distilbert_crude/

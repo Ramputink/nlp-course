@@ -3,7 +3,7 @@
 .qodo/
 .DS_Store
 distilbert_definitive/
-Project1_previousAttempts/checkpoint-*/
+Proyecto_1_PreviousAttempts/checkpoint-236/
 nlp_env_2026/
 *.pt
 *.bin

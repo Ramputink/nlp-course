@@ -14,5 +14,7 @@ __pycache__/
 runs/
 wandb/
 distilbert_crude/
+distilbert_sentiment/
+distilbert_sentiment_full/
 8_MaterialComplementario/papers.zip
 8_MaterialComplementario/papers.csv

@@ -180,15 +180,142 @@ Model persistence uses both **Pickle** (generic Python serialisation) and Gensim
 
 ---
 
-### Session 9 — *(Pending)*
+### Session 9 — Introduction to Neural Networks with PyTorch
 
-*(Content to be added)*
+| Notebook | Content |
+|----------|---------|
+| `9_Intro_a_NNs_con_Pytorch.ipynb` | Artificial neurons, MLPs, backpropagation, PyTorch tensors and autograd |
+
+This session is the gateway from classical ML to deep learning. It starts with the **biological motivation** (Santiago Ramón y Cajal's drawings, dendrites as inputs, synapses as weights, axon as output) and the **McCulloch–Pitts artificial neuron** (1943): a weighted sum of inputs `x_i` with weights `w_i` plus a bias, passed through a non-linear activation function. The classical activations are introduced — **sigmoid** σ(z) = 1/(1+exp(-z)), **tanh**, and **ReLU** = max(0, z) — and the move toward ReLU in deep networks is justified (no vanishing gradients in the positive regime, faster computation).
+
+**Multilayer Perceptrons (MLPs)** generalise Rosenblatt's perceptron to multiple stacked layers. The **error backpropagation** algorithm (Rumelhart, Hinton & Williams, *Nature* 1986) is explained as the efficient way to compute partial derivatives of the loss with respect to all weights via the **chain rule**, propagating gradients backward through the network. Loss surfaces in neural networks are non-convex with multiple local minima; gradient descent finds a nearby one.
+
+**PyTorch** is then introduced as the framework that makes all of this practical via **automatic differentiation**. The `torch.Tensor` data type is presented as NumPy-like but with two key features: it can live on GPU/MPS, and it tracks the computation graph for autograd. Tensor creation (`torch.zeros`, `torch.ones`, `torch.randn`, `torch.tensor`), reshaping (`.view`, `.reshape`, `.flatten`), element-wise vs matrix operations (`torch.matmul`/`@`/`torch.mm`), and the bidirectional conversion with NumPy (`torch.from_numpy`, `.numpy()`) are practised.
+
+**Logistic Regression in PyTorch** is built from scratch in three increasingly compact forms:
+1. **Manual implementation** using bare tensor operations and a `sigmoid()` function.
+2. **A custom `nn.Module` class** with attributes `self.weights` and `self.bias` and a `forward()` method.
+3. **A compact form** using predefined layers — `nn.Linear(in_features, out_features)` followed by `nn.Sigmoid()` (or, more numerically stable, `nn.Linear` + `BCEWithLogitsLoss` which fuses sigmoid and binary cross-entropy).
+
+It is applied to the **Spam dataset** (4601 obs, 57 features). The training loop is built piece by piece: (a) the **Binary Cross-Entropy** cost, (b) the `requires_grad=True` flag and gradient accumulation, (c) the `.backward()` call that fills `.grad` attributes via autograd, (d) `optim.SGD`/`Adam` optimisers, and (e) the canonical training step — `optimizer.zero_grad()` → forward → `loss.backward()` → `optimizer.step()`. The loop is encapsulated in a class that combines the model definition and the `.fit()` method.
 
 ---
 
-### Session 10 — *(Pending)*
+### Session 10 — Deep Learning: Regularisation and Convolutional Networks
 
-*(Content to be added)*
+| Notebook | Content |
+|----------|---------|
+| `10_Aprendizaje_Profundo_DL.ipynb` | Deep MLPs, regularisation, CNN layers, LeNet5 on Fashion-MNIST, autoencoders, CNNs for text |
+
+The session opens with the conceptual difference between shallow and deep models: **stacking layers produces hierarchical internal representations** (edges → textures → object parts → objects in vision; phonemes → words → phrases in audio; characters → words → semantics in text). Geoffrey Hinton's definition of deep learning is cited, and the historical landmarks are reviewed — LeCun's digit-recognition model (1989), **LeNet** (1998, first CNN with formal "convolution" and "subsampling" layers), and **AlexNet** (2012, 60M parameters, won ImageNet, introduced ReLU, dropout and GPU training at scale).
+
+**The training protocol** (train/validation/test split) is formalised, and the two failure modes are diagnosed: **high variance** (train loss much lower than validation loss → overfitting; remedies are more data, simpler model, regularisation) and **high bias** (both losses high → underfitting; remedies are more capacity or better features). Three concrete **regularisation techniques** are implemented:
+
+1. **Early stopping**: monitor the validation loss across epochs and stop when it begins to rise. Implemented as a class extension of the previous `MLP_train`, computing `valid_loss` every epoch and keeping the best-so-far weights.
+2. **Dropout**: random deactivation of activations during training (each unit kept with probability *p*). Reduces co-adaptation of features and acts as an implicit ensemble. Implemented with `nn.Dropout` layers in the MLP.
+3. **Data augmentation**: synthesise new training samples by transforming existing ones (image rotations, crops, flips; for text: synonym replacement, back-translation). Demonstrated with the `torchvision.transforms` pipeline on Fashion-MNIST.
+
+**Convolutional layers** are introduced as the alternative to fully-connected layers when the input has spatial structure. The session covers each layer type in turn: **`Conv2d`** (sliding kernels of size *M×M* over the input, producing *P* feature maps, with parameters *stride*, *padding* and *dilation*), **pooling** (`MaxPool2d`, `AvgPool2d` — local downsampling that reduces spatial dimensions and adds translation invariance), **flatten** (tensor → 1D vector to feed dense layers), **fully-connected**, and the final **softmax** layer for multiclass classification. The dataset used is **Fashion-MNIST** (60 000 train + 10 000 test, 28×28 grey-scale images, 10 classes), downloaded via `torchvision.datasets`.
+
+**LeNet5** is implemented end-to-end as a class: two conv+pool blocks followed by three fully-connected layers, trained with cross-entropy loss and Adam, reaching ~90% test accuracy on FMNIST. Extension exercises include computing the **confusion matrix**, adding a `.predict()` method, and scaling to the full training set.
+
+**Autoencoders and pre-training** are introduced as an unsupervised way to learn good initial representations: a network is trained to reconstruct its input through a low-dimensional bottleneck; the encoder weights then serve as initialisation for a downstream classifier. Finally, **CNNs for text** are discussed: 1D convolutions sliding over word embeddings act as learned n-gram detectors, an alternative to RNNs for sequence classification.
+
+---
+
+### Session 11 — Recurrent Neural Networks (RNN, LSTM)
+
+| Notebook | Content |
+|----------|---------|
+| `11_Redes_neuronales_recurrentes_RNNs.ipynb` | Sequential processing, RNNs, vanishing gradient, LSTMs, sentiment classification on Financial PhraseBank |
+
+The session addresses the structural problem of feeding text to a feed-forward network: **inputs of variable length** and the need to **preserve order**. The different input/output configurations are catalogued — *one-to-one* (classification), *one-to-many* (image captioning), *many-to-one* (sentiment from a sentence), *many-to-many* synchronous (POS tagging) and *many-to-many* asynchronous (translation, summarisation). The need for a model that consumes tokens **sequentially while maintaining an internal state** motivates RNNs.
+
+**The vanilla RNN** updates a hidden state `h_t = tanh(W_x · x_t + W_h · h_{t-1} + b)` and produces an output `y_t = g(W_y · h_t)`. The **temporal unfolding** (unrolling) of the network into a single graph is explained, and the cost is defined as the sum of per-step losses. Two operating modes are distinguished: **non-iterated** (final output after consuming the full sequence — for classification) and **generative** (the prediction is fed back as the next input — the basis of language modelling). The **vanishing gradient problem** is explained: gradients backpropagated through many time steps multiply repeatedly by derivatives of saturating activations, so the signal becomes too small to update early weights — i.e. the RNN cannot learn long-range dependencies.
+
+**LSTMs** (Hochreiter & Schmidhuber, 1997) solve this with a **gating mechanism**: an additional **cell state `C_t`** that carries information across time with minimal multiplicative interference, plus three **gates** that learn what to add, what to forget and what to read:
+- **Forget gate** `f_t = σ(W_f · [h_{t-1}, x_t] + b_f)` — decides which parts of the cell state to drop.
+- **Input gate** `i_t = σ(...)` combined with a candidate `Ĉ_t = tanh(...)` — adds new information.
+- **Output gate** `o_t = σ(...)` — produces the hidden state from the cell state, `h_t = o_t · tanh(C_t)`.
+
+The complete LSTM equations are derived and implemented in PyTorch with `nn.LSTM`, with attention to the input/output tensor shapes `(seq_len, batch, features)` and the optional `batch_first=True` flag.
+
+**Practical application — sentiment classification on Financial PhraseBank** (financial news headlines, three classes negative/neutral/positive, **highly imbalanced**). Five models are trained and compared side by side, with results stored as pickles for reuse in Session 12:
+1. **TF-IDF + LR** baseline.
+2. **Mean document embeddings + LR** (averaging SpaCy word vectors per sentence).
+3. **Doc embeddings + kNN**.
+4. **Doc embeddings + MLP** (three-layer classifier in PyTorch).
+5. **Word embeddings + LSTM + LR head** — the sequential model.
+
+For each model, accuracy, precision, recall, F1 and the **confusion matrix** are reported. The imbalance is addressed by reporting the **majority-class baseline** explicitly. Extension exercises explore hyperparameter tuning.
+
+---
+
+### Session 12 — Transformers
+
+| Notebook | Content |
+|----------|---------|
+| `12_Transformers_student.ipynb` | Attention, self-attention, Q/K/V, multi-head, positional encoding, BERT, RoBERTa, FinBERT, machine translation |
+
+This session presents the architecture that powers modern NLP. The motivation is twofold: (a) **a complete understanding of a sentence requires a global view of all tokens simultaneously**, which sequential processing cannot provide; (b) to scale to very large models on very large corpora, training must be **parallelisable across the sequence dimension**, again impossible with RNNs that process one step at a time.
+
+**The original encoder–decoder Transformer** (Vaswani et al., *Attention Is All You Need*, 2017) is introduced for machine translation: the encoder produces a contextual representation of every source token; the decoder generates the target sequence one token at a time, attending to both the encoder output (**cross-attention**) and its own previous outputs (**masked self-attention**). The three usage patterns are catalogued: **encoder-only** (BERT, RoBERTa — for classification and NER), **decoder-only** (GPT family — for generation), and **encoder-decoder** (T5, M2M100 — for translation, summarisation).
+
+**Attention mechanisms** are the core innovation. The session explains **self-attention** (relating different positions of the same sequence — used to enrich each word's representation with information from its neighbours), **cross-attention** (between two sequences — e.g. decoder attending to encoder), and **causal/masked self-attention** (decoder attending only to past tokens during generation).
+
+**Scaled dot-product attention** is derived step by step:
+1. Each token's embedding **X** (shape `n × d`) is linearly projected into **Q** (queries — *what am I looking for?*), **K** (keys — *what do I contain?*) and **V** (values — *what information do I carry?*).
+2. The affinity matrix is `F = Q · Kᵀ / √d_k` (the `√d_k` prevents the softmax from saturating for large `d_k`).
+3. A row-wise **softmax** turns `F` into attention weights.
+4. The output is `Attention(Q, K, V) = softmax(Q · Kᵀ / √d_k) · V`.
+
+**Multi-head attention** stacks `H` parallel attention modules (each with its own Q/K/V projections, often with `d_k = d / H`), concatenates the outputs, and applies a final linear projection. Each head learns to focus on a different kind of relation (syntactic, semantic, positional).
+
+**Positional encoding** restores order information lost by the permutation-equivariant attention layer. The original sinusoidal encoding `PE(pos, 2i) = sin(pos / 10000^{2i/d})` is explained, along with the more recent **learned positional embeddings** and **rotary positional embeddings (RoPE)**.
+
+The **complete Transformer block** is assembled — multi-head self-attention → residual + layer-norm → feed-forward network (two linear layers with GELU) → residual + layer-norm — stacked *N* times (*N=6* in the original paper).
+
+**BERT** (Bidirectional Encoder Representations from Transformers) is then explained: pre-trained on **Masked Language Modeling** (predict randomly masked tokens) and **Next Sentence Prediction**, producing bidirectional contextual embeddings. The `[CLS]` token's representation is used for sentence-level classification.
+
+**Practical application — sentiment classification with pre-trained models** on the same Financial PhraseBank used in Session 11 (same split for fair comparison):
+- **BERT base** (`bert-base-uncased`) fine-tuned via the Hugging Face `transformers` library.
+- **RoBERTa** (`cardiffnlp/twitter-roberta-base-sentiment-latest`) — a model already fine-tuned for sentiment.
+- **FinBERT** (`ProsusAI/finbert`) — domain-specific model pre-trained on financial texts.
+
+Each model is evaluated with **accuracy, precision, recall, F1, ROC AUC** and **decision-threshold optimisation** (extension exercise). FinBERT wins on this corpus, illustrating the value of domain-adapted pre-training.
+
+**Machine translation** is demonstrated with **Helsinki-NLP/Opus-MT** (English → German, English → Spanish), and with Meta's **M2M100** (`facebook/m2m100_418M` and `1.2B`) — a single 100-language many-to-many model. Extension exercises automate translation to all supported languages and analyse failure cases (low-resource pairs).
+
+---
+
+### Session 13 — Large Language Models (LLMs)
+
+| Notebook | Content |
+|----------|---------|
+| `13_LLMs.ipynb` | LLM fundamentals, model size taxonomy, SmolLM2, Phi-3.5-mini, GGUF/llama.cpp, LM Studio, frontier models |
+
+This session ties everything together by presenting the current state of generative language models. A **language model** is defined as a system that, given an input sequence (prompt), predicts the most probable next token, iterating to produce coherent text. Modern LLMs are almost always **decoder-only Transformers**: they apply multiple layers of masked self-attention over a context window, with a final linear projection over the vocabulary.
+
+The session distinguishes the **two training phases**:
+1. **Pre-training** on massive unlabelled corpora (web text, books, code, articles) by next-token prediction. The model learns grammar, world knowledge, code, reasoning patterns — adjusting billions of parameters.
+2. **Fine-tuning** to convert the raw next-token predictor into a helpful assistant: **supervised fine-tuning (SFT)** on instruction–response pairs, then **alignment** with **RLHF** (Reinforcement Learning from Human Feedback) or **DPO** (Direct Preference Optimisation) to make the model follow instructions, refuse harmful requests and adopt a specific style.
+
+The main **capabilities** of LLMs are listed: text generation, summarisation, translation, code writing, chain-of-thought reasoning, and tool use. The session emphasises that these capabilities emerge from scale and broad pre-training — they are not explicitly programmed.
+
+A **model-size taxonomy** is presented with the hardware footprint of each tier:
+| Tier | Parameter range | Example | Hardware |
+|---|---|---|---|
+| **Nano / Micro** | < 1B | SmolLM2-360M | Smartphone, IoT |
+| **Small (SLM)** | 1B – 10B | Phi-3.5-mini-instruct (3.8B), Llama 3.2 3B | Consumer laptop |
+| **Medium** | 10B – 50B | Llama 3 8B, Gemma 2 27B | High-end GPU |
+| **Large (LLM)** | 50B – 300B | Llama 3 70B, Qwen 72B | Multi-GPU server cluster |
+| **Frontier** | > 300B (often MoE) | GPT-4, Claude 4, Gemini Ultra | Datacenter supercomputer |
+
+Practical **inference examples**:
+- **SmolLM2-360M-Instruct** is loaded via Hugging Face `transformers` to demonstrate small-model behaviour on a set of evaluation queries ("¿Cuál es la capital de Francia?", arithmetic, code completion). The limitations of nano models in reasoning are made explicit.
+- **Phi-3.5-mini-instruct (3.8B)** is run locally through **`llama.cpp`** using the **GGUF** quantised format. GGUF is presented as the de-facto standard for local LLM deployment: a single binary file that bundles weights (typically quantised to 4-bit or 5-bit), tokeniser, and metadata, runnable on CPU or modest GPUs.
+- **LM Studio** is introduced as a graphical desktop tool to download, manage and chat with local GGUF models.
+- A reflection on **frontier models** closes the session: they outperform all earlier tiers on reasoning benchmarks, but a vast number of practical applications can be solved adequately (and far more cheaply) by SLMs running locally — a recurring theme in current NLP practice.
 
 ---
 
@@ -228,6 +355,43 @@ For each method, the **cosine distance matrix** between all question pairs is co
 
 ---
 
+### Project 3 — Opinion Analysis (Binary Sentiment Classification)
+
+| Notebook | Content |
+|----------|---------|
+| `Proyecto_3_NLP_AnalisisOpinion.ipynb` | Classical baselines + DistilBERT fine-tuning (first iteration) |
+| `Proyecto_3_NLP_AnalisisOpinion_FINAL.ipynb` | **Deliverable version**: leakage-free pipelines, homogeneous 5-fold CV, DistilBERT 5-fold OOF, stacking, full test diagnostics |
+
+Binary classification of opinion (positive = 1, negative = 0) over a **mixed multi-domain corpus** (8 000 training samples, 2 000 test, ~48 % positive class) combining four very different sources: **tweets** (airline complaints, Apple/tech), **drug reviews** (clinical vocabulary), **financial news** (Reuters/Finnish corporations) and **other web text**. The mix is detected with a lightweight heuristic and used to break down results per domain.
+
+**Final pipeline (deliverable notebook).** All models share the **same** evaluation protocol — `StratifiedKFold(n_splits=5, shuffle=True, random_state=42)` with **ROC AUC** — and every transformation lives **inside an sklearn `Pipeline`/`FeatureUnion`** so the cross-validation is leakage-free (the TF-IDF vocabulary and the meta-feature scaler are fit only on each train fold).
+
+Eight models are compared:
+1. **LR + TF-IDF word** on SpaCy-lemmatised text — light baseline.
+2. **LR + TF-IDF word+char** on lightly-cleaned text that preserves `!`, `?` and capitalisation (signals critical for sentiment that the first iteration discarded).
+3. **Calibrated LinearSVC** + TF-IDF word+char.
+4. **MultinomialNB** + TF-IDF word+char.
+5. **LR + TF-IDF word+char + meta-features**: VADER scores (pos/neg/neu/compound), upper-case ratio, `!`/`?` counts, negation flag (`not`, `no`, `never`…) and TextBlob polarity, combined via `FeatureUnion` and standardised inside the pipeline.
+6. **LR optimised by `GridSearchCV`** over the regularisation strength.
+7. **DistilBERT fine-tuned with 5-fold CV** (`distilbert-base-uncased`, `max_len=192`, 2 epochs, batch 16, LR 2e-5). Each fold model is saved to disk for ensemble inference on test; **Out-Of-Fold (OOF)** probabilities are concatenated to give a fair, comparable AUC.
+8. **Stacking** — a meta-`LogisticRegression` trained on the OOF probabilities of DistilBERT, LR(word+char) and LR(word+char+meta). Because all three base features are OOF, the stacker is trained without leakage and its CV AUC is honest.
+
+**Winner selection** is automatic: the model with the highest 5-fold AUC is declared winner. The stacker is then deployed on test:
+1. DistilBERT predictions are the average of the five fold models (ensemble).
+2. LR(word+char) and LR(word+char+meta) are re-trained on 100 % of the training set.
+3. The three probabilities are stacked and passed through the meta-LR.
+
+**Test diagnostics** (the deliverable section that was missing in the original iteration):
+- Final stacker AUC on test, plus per-component AUC for diagnostic purposes.
+- **Confusion matrix** and `classification_report` at threshold 0.5.
+- **ROC curve** for the stacker and the three components.
+- **AUC broken down by domain** (tweet / drug_review / financial / other) — exposing where the model is strongest and weakest.
+- **Top-10 highest-confidence errors** for qualitative inspection.
+
+The notebook is designed to run end-to-end in a **single execution of 40–45 minutes** on an Apple M2 Pro with MPS (DistilBERT is the dominant cost). The first-iteration notebook is kept for reference; the `_FINAL` version is the one to grade.
+
+---
+
 ## Supplementary Material
 
 The `8_MaterialComplementario/` folder contains artefacts generated during Session 8:
@@ -243,4 +407,5 @@ The `8_MaterialComplementario/` folder contains artefacts generated during Sessi
 
 - Notebooks were originally designed for Google Colab. References to `google.colab` and `drive.mount()` have been replaced with local paths.
 - The file `papers.zip` (>100 MB) is excluded from the repository via `.gitignore` as it exceeds GitHub's file size limit.
-- This README will be updated as remaining sessions are added.
+- Transformer fine-tuning runs (Project 1 DistilBERT, Project 3 DistilBERT, Session 12 BERT/RoBERTa/FinBERT) use the Apple Silicon GPU through the PyTorch **MPS** backend (`torch.device("mps")`). The corresponding model directories (`distilbert_*/`, `roberta_*/`) contain training checkpoints and should be re-generated locally.
+- All thirteen course sessions and the three projects are now documented in this README.
